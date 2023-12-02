@@ -14,9 +14,12 @@ struct ColorBag {
 }
 
 impl ColorBag {
-    
     fn fit(&self, other: &ColorBag) -> bool {
         self.r <= other.r && self.g <= other.g && self.b <= other.b
+    }
+
+    fn power(self) -> usize {
+        self.r * self.g * self.b
     }
 }
 
@@ -61,6 +64,7 @@ impl From<&str> for Game {
 fn main() {
     let input = fs::read_to_string("./day02/input.txt").unwrap();
     part_1(&input);
+    part_2(&input);
 }
 
 fn part_1(input: &str) {
@@ -77,4 +81,13 @@ fn part_1(input: &str) {
         .map(|game| game.id)
         .sum::<usize>();
     println!("Day02 Part 1: {result}")
+}
+
+fn part_2(input: &str) {
+    let result = input
+        .split("\r\n")
+        .map(Game::from)
+        .map(|game| game.max_bag.power())
+        .sum::<usize>();
+    println!("Day02 Part 2: {result}")
 }
