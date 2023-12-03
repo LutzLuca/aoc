@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::{collections::HashSet, fs, ops::RangeInclusive};
 
 #[derive(Debug, Hash, PartialEq, Eq)]
