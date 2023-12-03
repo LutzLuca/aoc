@@ -1,6 +1,6 @@
-use std::{fs, ops::RangeInclusive};
+use std::{collections::HashSet, fs, ops::RangeInclusive};
 
-#[derive(Debug)]
+#[derive(Debug, Hash, PartialEq, Eq)]
 struct Number {
     row: usize,
     span: RangeInclusive<usize>,
@@ -16,6 +16,62 @@ fn main() {
     let input = fs::read_to_string("./day03/input.txt").unwrap();
     part_1(&input);
     // part_1_first_sol(&input)
+    part_2(&input);
+}
+
+fn part_2(input: &str) {
+    let mut nums: Vec<Number> = vec![];
+    let mut syms: Vec<(usize, usize)> = vec![];
+
+    for (r_idx, row) in input.split("\r\n").enumerate() {
+        let mut chs = row.char_indices().peekable();
+        while let Some((c_idx, ch)) = chs.next() {
+            if matches!(ch, '*') {
+                syms.push((r_idx, c_idx));
+                continue;
+            } else if ch.is_ascii_digit() {
+                let start = c_idx;
+                let mut end = c_idx;
+
+                while chs.peek().is_some_and(|(_, val)| val.is_ascii_digit()) {
+                    chs.next();
+                    end += 1;
+                }
+
+                nums.push(Number {
+                    row: r_idx,
+                    span: start..=end,
+                    val: row[start..=end].parse().unwrap(),
+                    found: false,
+                });
+            }
+        }
+    }
+
+    let mut result = 0;
+    syms.into_iter().for_each(|(row, col)| {
+        let mut unique = HashSet::new();
+
+        for dx in -1..=1 {
+            for dy in -1..=1 {
+                let row = std::cmp::max(0, row as i32 + dy) as usize;
+                let col = std::cmp::max(0, col as i32 + dx) as usize;
+
+                nums.iter()
+                    .filter(|num| num.row == row && num.span.contains(&col))
+                    .for_each(|num| {
+                        unique.insert(num);
+                    });
+            }
+        }
+
+        if unique.len() == 2 {
+            result += unique.iter().fold(1, |acc, num| acc * num.val);
+        }
+        unique.clear();
+    });
+
+    println!("Day03 Part 2: {result}")
 }
 
 fn part_1(input: &str) {
@@ -27,7 +83,6 @@ fn part_1(input: &str) {
         while let Some((c_idx, ch)) = chs.next() {
             if is_symbol(ch) {
                 syms.push((r_idx, c_idx));
-                continue;
             } else if ch.is_ascii_digit() {
                 let start = c_idx;
                 let mut end = c_idx;
