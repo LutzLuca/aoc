@@ -78,8 +78,7 @@ fn part_1(input: &str) {
         .split("\r\n")
         .map(Game::from)
         .filter(|game| game.max_bag.fit(&GIVEN_BAG))
-        .map(|game| game.id)
-        .sum::<usize>();
+        .fold(0, |acc, game| acc + game.id);
     println!("Day02 Part 1: {result}")
 }
 
@@ -87,7 +86,6 @@ fn part_2(input: &str) {
     let result = input
         .split("\r\n")
         .map(Game::from)
-        .map(|game| game.max_bag.power())
-        .sum::<usize>();
+        .fold(0, |acc, game| acc + game.max_bag.power());
     println!("Day02 Part 2: {result}")
 }
