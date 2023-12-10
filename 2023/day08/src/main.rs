@@ -1,11 +1,66 @@
 use std::{collections::BTreeMap, fs};
 
+const fn lcm(a: usize, b: usize) -> usize {
+    const fn gcd(a: usize, b: usize) -> usize {
+        if b == 0 {
+            a
+        } else {
+            gcd(b, a % b)
+        }
+    }
+    a * b / gcd(a, b)
+}
+
 fn main() {
     let input = fs::read_to_string("day08/input.txt").unwrap();
-    part_1(&input);
 
+    part_1(&input);
     #[cfg(not(debug_assertions))]
     part_1_rec(&input);
+
+    part_2(&input);
+}
+
+fn part_2(input: &str) {
+    let (instructions, network) = input.split_once("\r\n\r\n").unwrap();
+
+    let network: BTreeMap<_, _> = network
+        .lines()
+        .map(|line| {
+            let (curr, next) = line.split_once(" = ").unwrap();
+            let (left, right) = next[1..(next.len() - 1)].split_once(", ").unwrap();
+
+            (curr, (left, right))
+        })
+        .collect();
+
+    // input is constructed in such a way that the cycle len = idx of first occurrence that ends with 'Z',
+    // that is included in that cycle. Therefore landing on that occurrence takes (n * cycle len) steps.
+    // => finding the lcm of all the cycle lengths is the answer
+    let result = network
+        .keys()
+        .filter(|node| node.ends_with('A'))
+        .copied()
+        .map(|mut curr| {
+            instructions
+                .chars()
+                .cycle()
+                .enumerate()
+                .find_map(|(step, dir)| {
+                    curr.ends_with('Z').then_some(step).or({
+                        curr = match dir {
+                            'L' => network.get(curr).unwrap().0,
+                            'R' => network.get(curr).unwrap().1,
+                            _ => unreachable!(),
+                        };
+                        None
+                    })
+                })
+                .unwrap()
+        })
+        .reduce(lcm)
+        .unwrap();
+    println!("Day08 Part 2: {result}")
 }
 
 fn part_1(input: &str) {
