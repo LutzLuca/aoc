@@ -2,10 +2,14 @@ use std::{cmp, fs};
 
 fn main() {
     let input = fs::read_to_string("day11/input.txt").unwrap();
-    part_1(&input);
+    let result = solve(&input, 2);
+    println!("Day11 Part1: {result}");
+
+    let result = solve(&input, 1000000);
+    println!("Day11 Part2: {result}");
 }
 
-fn part_1(input: &str) {
+fn solve(input: &str, multiplier: usize) -> usize {
     let image: Vec<Vec<_>> = input.lines().map(|row| row.chars().collect()).collect();
     let galaxies: Vec<_> = image
         .iter()
@@ -28,9 +32,9 @@ fn part_1(input: &str) {
         .filter_map(|(row_idx, row)| row.iter().all(|&ch| ch == '.').then_some(row_idx))
         .collect();
 
-    let dist = |curr, pos| dist(curr, pos, &empty_rows, &empty_cols);
+    let dist = |curr, pos| dist(curr, pos, &empty_rows, &empty_cols, multiplier);
 
-    let result = galaxies
+    galaxies
         .iter()
         .enumerate()
         .map(|(idx, curr)| {
@@ -38,8 +42,7 @@ fn part_1(input: &str) {
                 .iter()
                 .fold(0, |acc, &galaxy| acc + dist(*curr, galaxy))
         })
-        .sum::<usize>();
-    println!("Day11 Part1: {result}")
+        .sum::<usize>()
 }
 
 fn dist(
@@ -47,6 +50,7 @@ fn dist(
     (goal_row, goal_col): (usize, usize),
     empty_rows: &[usize],
     empty_cols: &[usize],
+    multiplier: usize,
 ) -> usize {
     let (min_row, max_row) = (cmp::min(curr_row, goal_row), cmp::max(curr_row, goal_row));
     let (min_col, max_col) = (cmp::min(curr_col, goal_col), cmp::max(curr_col, goal_col));
@@ -64,8 +68,8 @@ fn dist(
         .filter(|col| col_range.contains(col))
         .count();
 
-    let rows = max_row - min_row - extended_rows + 2 * extended_rows;
-    let cols = max_col - min_col - extended_cols + 2 * extended_cols;
+    let rows = max_row - min_row + (multiplier - 1) * extended_rows;
+    let cols = max_col - min_col + (multiplier - 1) * extended_cols;
 
     rows + cols
 }
